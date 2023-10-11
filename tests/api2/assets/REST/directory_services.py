@@ -73,17 +73,11 @@ def active_directory(domain, username, password, **kwargs):
         assert job_status['state'] == 'SUCCESS', str(job_status['results'])
 
     sleep(5)
-    try:
-        config = results.json()
-        yield {
-            'config': config,
-            'result': job_status['results']
-        }
-    finally:
-        results = POST('/activedirectory/leave/', {'username': username, 'password': password})
-        assert results.status_code == 200, results.text
-        job_status = wait_on_job(results.json(), 180)
-        assert job_status['state'] == 'SUCCESS', str(job_status['results'])
+    config = results.json()
+    yield {
+        'config': config,
+        'result': job_status['results']
+    }
 
 
 @contextlib.contextmanager
