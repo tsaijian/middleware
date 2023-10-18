@@ -1,0 +1,97 @@
+#!/usr/bin/python3
+
+import os
+import pam
+import pwd
+import signal
+import sys
+from getpass import getpass
+from middlewared.client import Client, ValidationErrors
+
+MAX_RETRIES_OLD_PASSWORD = 2
+MAX_RETRIES_NEW_PASSWORD = 2
+
+
+def sigint_handler(signum, frame):
+    """
+    This is cosmetic to avoid python tracebacks if user sends SIGINT.
+    """
+    sys.exit(1)
+
+
+def get_current_password(username, retries=0):
+    """
+    Get the current password from the user. Validate using PAM.
+    libpam inserts a random delay after a failed authenticate
+    attempt to prevent timing attacks.
+    """
+    if retries > MAX_RETRIES_OLD_PASSWORD:
+        # User can't remember or doesn't know their current password
+        # At this point the NAS admin has to get involved.
+        sys.exit(
+            f"Failed to validate current password for {username}. "
+            "Contact the adminstrator for password maintenance "
+            "assistance."
+        )
+
+    password = getpass(
+        f"Changing password for {username}\n"
+        "Current password:"
+    )
+    p = pam.pam()
+    if not p.authenticate(username, password, service="middleware"):
+        print(f"Failed to validate current password for {username}.")
+        return get_current_password(username, retries + 1)
+
+    return password
+
+
+def get_new_password(retries=0):
+    """
+    Get the new password from the user. Hopefully being able to
+    type the same one twice in a row means they're either able to
+    remember or using a password manager.
+    """
+    if retries > MAX_RETRIES_OLD_PASSWORD:
+        # User is unable to type in the same string two times in
+        # a row. At this point someone else should get involved.
+        sys.exit(
+            "Contact the administrator for assistance with "
+            "updating your password."
+        )
+
+    first = getpass("New password:")
+    second = getpass("Repeat new password:")
+    if first != second:
+        print("Passwords do not match.")
+        return get_new_password(retries + 1)
+
+    return second
+
+
+def handle_validation_errors(exc):
+    """
+    ValidationErrors return by middleware include information about
+    conditions that prevent user from changing their password to the
+    specified one. Print all of them out before exiting.
+    """
+    exit_msg = '\n'.join([err.errmsg for err in exc.errors])
+    sys.exit(exit_msg)
+
+
+def main():
+    username = pwd.getpwuid(os.geteuid()).pw_name
+    old_password = get_current_password(username)
+    new_password = get_new_password()
+    with Client() as c:
+        try:
+            c.call('user.reset_password', old_password, new_password)
+        except ValidationErrors as e:
+            handle_validation_errors(e)
+
+    print(f'{username}: password successfully reset.')
+
+
+if __name__ == '__main__':
+    signal.signal(signal.SIGINT, sigint_handler)
+    main()
