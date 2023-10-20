@@ -71,7 +71,7 @@ def get_new_password(retries=0):
 
 def handle_validation_errors(exc):
     """
-    ValidationErrors return by middleware include information about
+    ValidationErrors returned by middleware include information about
     conditions that prevent user from changing their password to the
     specified one. Print all of them out before exiting.
     """
@@ -81,7 +81,9 @@ def handle_validation_errors(exc):
 
 def handle_generic_client_exception(exc):
     """
-
+    This is more generic client exception than an explicit validation
+    error from middleware. The primary reason for this to happen would
+    be if the user lacks privileges to reset its password.
     """
     if exc.error == 'Not authenticated':
         sys.exit(
