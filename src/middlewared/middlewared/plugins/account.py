@@ -585,6 +585,8 @@ class UserService(CRUDService):
         create = data.pop('group_create')
         group_created = False
 
+        data['last_password_change'] = datetime.utcnow()
+
         if create:
             group = self.middleware.call_sync('group.query', [('group', '=', data['username'])])
             if group:
