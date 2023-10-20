@@ -185,7 +185,7 @@ class UserService(CRUDService):
         ('add', Str('sid', null=True)),
         ('add', Datetime('last_password_change', null=True)),
         ('add', Int('password_age', null=True)),
-        ('add', List('password_history', null=True)),
+        ('add', List('password_history', items=[Password('old_hash')], null=True)),
     )
 
     @private
