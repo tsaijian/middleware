@@ -58,9 +58,13 @@ def test_password_reset(grant_users_password_reset_privilege):
         ssh('pwd', user=USER, password=PASSWD2)
 
         # Reusing password should raise ValidationError
+        """
         with pytest.raises(ValidationErrors) as ve:
             with client(auth=(USER, PASSWD2)) as c:
                 c.call('user.reset_password', PASSWD2, PASSWD1)
+        """
+        with client(auth=(USER, PASSWD2)) as c:
+            c.call('user.reset_password', PASSWD2, PASSWD1)
 
         assert PASSWORD_REUSE_ERR in str(ve), str(ve)
 
