@@ -24,7 +24,8 @@ def grant_users_password_reset_privilege(request):
         'allowlist': [{
             'method': '*',
             'resource': 'user.password_reset'
-        }]
+        }],
+        'web_shell': False
     })
     try:
         yield request
