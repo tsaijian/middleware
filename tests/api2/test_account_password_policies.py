@@ -10,9 +10,14 @@ from middlewared.test.integration.utils import call, client, ssh
 USER = 'password_reset_user'
 PASSWD1 = ''.join(secrets.choice(string.ascii_letters + string.digits) for i in range(10))
 PASSWD2 = ''.join(secrets.choice(string.ascii_letters + string.digits) for i in range(10))
+PASSWD3 = ''.join(secrets.choice(string.ascii_letters + string.digits) for i in range(10))
 
 PASSWORD_REUSE_ERR = """
 Security configuration for this user account requires a password that does not match any of the last 10 passwords.
+"""
+
+PASSWORD_TOO_RECENTLY_CHANGED_ERR = """
+Password was changed too recently
 """
 
 
@@ -64,3 +69,15 @@ def test_password_reset(grant_users_password_reset_privilege):
         c.call('user.update', u['id'], {'password_aging_enabled': False})
         with client(auth=(USER, PASSWD2)) as c:
             c.call('user.reset_password', PASSWD2, PASSWD1)
+
+        c.call('user.update', u['id'], {
+            'password_aging_enabled': True,
+            'min_password_age': 1,
+        })
+
+        # Trying to change password too quickly should raise an error
+        with pytest.raises(ValidationErrors) as ve:
+            with client(auth=(USER, PASSWD1)) as c:
+                c.call('user.reset_password', PASSWD1, PASSWD3)
+
+        assert PASSWORD_TOO_RECENTLY_CHANGED_ERR in str(ve), str(ve)
