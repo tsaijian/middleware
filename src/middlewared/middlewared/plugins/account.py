@@ -1186,13 +1186,10 @@ class UserService(CRUDService):
         if entry['locked']:
             verrors.add('user.reset_password', f'{username}: user account is locked.')
 
-        if (datetime.utcnow() - entry['last_password_change']).days < entry['min_password_age']:
-            verrors.add('user.reset_password', 'Password was changed too recently') 
-
         new_hash = crypted_password(new_password)
 
         if entry['password_aging_enabled']:
-            if (datetime.utcnow() - entry['last_password_change']).days < entry['min_password_age']:
+            if (datetime.utcnow() - entry['last_password_change']).days < (entry['min_password_age'] or 0):
                 verrors.add('user.reset_password', 'Password was changed too recently') 
 
             for hash in entry['password_history']:
