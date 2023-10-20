@@ -6,7 +6,7 @@ import pwd
 import signal
 import sys
 from getpass import getpass
-from middlewared.client import Client, ValidationErrors
+from middlewared.client import Client, ClientException, ValidationErrors
 
 MAX_RETRIES_OLD_PASSWORD = 2
 MAX_RETRIES_NEW_PASSWORD = 2
@@ -79,6 +79,19 @@ def handle_validation_errors(exc):
     sys.exit(exit_msg)
 
 
+def handle_generic_client_exception(exc):
+    """
+
+    """
+    if exc.error == 'Not authenticated':
+        sys.exit(
+            "User lacks privileges to reset its password. Contact "
+            "the server administrator for assistance with changing "
+            "the user password."
+        )
+
+    sys.exit(exc.error)
+
 def main():
     username = pwd.getpwuid(os.geteuid()).pw_name
     old_password = get_current_password(username)
@@ -88,6 +101,8 @@ def main():
             c.call('user.reset_password', old_password, new_password)
         except ValidationErrors as e:
             handle_validation_errors(e)
+        except ClientException as e:
+            handle_generic_client_exception(e)
 
     print(f'{username}: password successfully reset.')
 
