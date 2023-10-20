@@ -28,7 +28,7 @@ def grant_users_password_reset_privilege(request):
         'local_groups': [545],
         'allowlist': [{
             'method': '*',
-            'resource': 'user.password_reset'
+            'resource': 'user.reset_password'
         }],
         'web_shell': False
     })
