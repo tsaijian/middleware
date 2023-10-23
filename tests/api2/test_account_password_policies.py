@@ -63,7 +63,7 @@ def test_password_reset(grant_users_password_reset_privilege):
 
         data = call('user.query', [['id', '=', u['id']]], {'get': True})
         assert data['password_aging_enabled'] is True
-        assert len(data['password_history'] > 0
+        assert len(data['password_history']) > 0
 
         ssh('pwd', user=USER, password=PASSWD1)
 
