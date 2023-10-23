@@ -69,11 +69,11 @@ def test_password_reset(grant_users_password_reset_privilege):
 
         # Make sure we can change back to password with nonsense
         # turned off
-        c.call('user.update', u['id'], {'password_aging_enabled': False})
+        call('user.update', u['id'], {'password_aging_enabled': False})
         with client(auth=(USER, PASSWD1)) as c:
             c.call('user.reset_password', PASSWD1, PASSWD2)
 
-        c.call('user.update', u['id'], {
+        call('user.update', u['id'], {
             'password_aging_enabled': True,
             'min_password_age': 1,
         })
