@@ -84,3 +84,12 @@ def test_password_reset(grant_users_password_reset_privilege):
                 c.call('user.reset_password', PASSWD2, PASSWD3)
 
         #assert PASSWORD_TOO_RECENTLY_CHANGED_ERR in str(ve), str(ve)
+
+        # Validate that user with "password change required" can set it
+        call('user.update', u['id'], {
+            'password_aging_enabled': False,
+            'password_change_required': True,
+        })
+
+        with client(auth=(USER, PASSWD2)) as c:
+            c.call('user.reset_password', PASSWD2, PASSWD3)
