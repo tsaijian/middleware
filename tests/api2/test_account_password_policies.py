@@ -61,15 +61,11 @@ def test_password_reset(grant_users_password_reset_privilege):
         with client(auth=(USER, PASSWD2)) as c:
             c.call('user.reset_password', PASSWD2, PASSWD1)
 
-        """
         with pytest.raises(ValidationErrors) as ve:
             with client(auth=(USER, PASSWD1)) as c:
                 c.call('user.reset_password', PASSWD1, PASSWD2)
 
-        assert PASSWORD_REUSE_ERR in str(ve.errors[0]), str(ve.errors[0])
-        """
-        with client(auth=(USER, PASSWD1)) as c:
-            c.call('user.reset_password', PASSWD1, PASSWD2)
+        #assert PASSWORD_REUSE_ERR in str(ve.errors[0]), str(ve.errors[0])
 
         # Make sure we can change back to password with nonsense
         # turned off
