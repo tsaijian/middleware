@@ -61,6 +61,12 @@ def test_password_reset(grant_users_password_reset_privilege):
         with client(auth=(USER, PASSWD2)) as c:
             c.call('user.reset_password', PASSWD2, PASSWD1)
 
+        data = call('user.query', [['id', '=', u['id']], {'get': True})
+        assert data['password_aging_enabled'] is True
+        assert len(data['password_history'] > 0
+
+        ssh('pwd', user=USER, password=PASSWD1)
+
         with pytest.raises(ValidationErrors) as ve:
             with client(auth=(USER, PASSWD1)) as c:
                 c.call('user.reset_password', PASSWD1, PASSWD2)
@@ -78,6 +84,9 @@ def test_password_reset(grant_users_password_reset_privilege):
             'min_password_age': 1,
         })
 
+        data = call('user.query', [['id', '=', u['id']], {'get': True})
+        assert data['min_password_age'] == 1
+
         # Trying to change password too quickly should raise an error
         with pytest.raises(ValidationErrors) as ve:
             with client(auth=(USER, PASSWD2)) as c:
@@ -90,6 +99,8 @@ def test_password_reset(grant_users_password_reset_privilege):
             'password_aging_enabled': False,
             'password_change_required': True,
         })
+
+        ssh('pwd', user=USER, password=PASSWD1)
 
         with client(auth=(USER, PASSWD2)) as c:
             c.call('user.reset_password', PASSWD2, PASSWD3)
