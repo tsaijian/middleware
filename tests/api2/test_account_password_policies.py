@@ -80,7 +80,7 @@ def test_password_reset(grant_users_password_reset_privilege):
 
         # Trying to change password too quickly should raise an error
         with pytest.raises(ValidationErrors) as ve:
-            with client(auth=(USER, PASSWD1)) as c:
-                c.call('user.reset_password', PASSWD1, PASSWD3)
+            with client(auth=(USER, PASSWD2)) as c:
+                c.call('user.reset_password', PASSWD2, PASSWD3)
 
         assert PASSWORD_TOO_RECENTLY_CHANGED_ERR in str(ve), str(ve)
