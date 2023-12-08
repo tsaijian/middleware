@@ -10,7 +10,7 @@ class BootService(Service):
 
     @private
     async def install_loader(self, dev):
-        await run('grub-install', '--target=i386-pc', f'/dev/{dev}')
+        await run('grub-install', '--target=arm64-efi', f'/dev/{dev}')
 
         if (
             (await self.middleware.call('disk.list_partitions', dev))[1]['partition_type'] !=
